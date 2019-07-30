@@ -1,0 +1,38 @@
+syntax = "proto3";
+package user;
+
+
+service User {
+    rpc GetUsers(UserFilter) returns (stream UserRequest) {}
+    rpc CreateUser(UserRequest) returns (UserResponse) {}
+}
+
+message UserRequest {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+    string designation = 4;
+
+    message Team {
+        int32 teamId = 1;
+        string teamName = 2;
+    }
+
+    message Address {
+        string city = 1;
+        string state = 2;
+        string country = 3;
+    }
+
+    Team team = 5;
+    repeated Address addresses = 6;
+}
+
+message UserFilter {
+    string keyword = 1;
+}
+
+message UserResponse {
+    int32 id = 1;
+    bool success = 2;
+}
