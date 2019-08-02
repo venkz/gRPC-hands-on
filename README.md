@@ -45,7 +45,7 @@ To convert the `user.proto` to a .pb.go file
     > protoc -I user user/user.proto --go_out=plugins=grpc:user
 ```
 
-##### user
+##### utils
 * General utils and Kafka common vars
 
 
