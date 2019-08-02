@@ -1,48 +1,46 @@
 package main
 
 import (
-	"log"
+	"flag"
 	"net"
-	"strings"
 
-	"golang.org/x/net/context"
+	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
 	"gRPC-hands-on/user"
 )
 
-type server struct {
-	savedUsers []*user.UserRequest
-}
-
-func (s *server) CreateUser(ctx context.Context, in *user.UserRequest) (*user.UserResponse, error) {
-	s.savedUsers = append(s.savedUsers, in)
-	log.Printf("New user created. Total users in system: %d", len(s.savedUsers))
-	return &user.UserResponse{Id: in.Id, Success: true}, nil
-}
-
-func (s *server) GetUsers(in *user.UserFilter, stream user.User_GetUsersServer) error {
-	for _, user := range s.savedUsers {
-		if in.Keyword != "" {
-			if !strings.Contains(user.Name, in.Keyword) {
-				continue
-			}
-		}
-		if err := stream.Send(user); err != nil {
-			log.Println(err)
-			return err
-		}
-	}
-	return nil
-}
-
 func main() {
+	serverFlag := flag.String("backend", "foo", "...")
+
 	listener, err := net.Listen("tcp", ":9998")
 	if err != nil {
-		log.Printf("Unable to start server")
+		glog.Infof("Unable to start server")
 	}
 
 	grpcServer := grpc.NewServer()
-	user.RegisterUserServer(grpcServer, &server{})
-	grpcServer.Serve(listener)
+	flag.Parse()
+	switch *serverFlag {
+	case "grpc_kafka":
+		{
+			glog.Infoln("Starting gRPC server")
+			user.RegisterUserServer(grpcServer, &KafkaServer{})
+			grpcServer.Serve(listener)
+		}
+	case "memory":
+		{
+			glog.Infoln("Starting in memory server")
+			user.RegisterUserServer(grpcServer, &InMemoryStorage{})
+			grpcServer.Serve(listener)
+		}
+	case "http_kafka":
+		{
+			glog.Infoln("Starting in HTTP server")
+			handleRequests()
+		}
+	case "foo":
+		{
+			glog.Errorln("Specify backend by passing --backend = [grpc_kafka|memory|http_kafka]")
+		}
+	}
 }

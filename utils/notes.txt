@@ -1,0 +1,2 @@
+ /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server docker.for.mac.localhost:9092 --topic TopicGRPC --from-beginning
+ /opt/kafka/bin/kafka-console-producer.sh --broker-list docker.for.mac.localhost:9092 --topic TopicGRPC
